@@ -9,7 +9,7 @@ class Discord_Info(commands.Cog):
         self.bot = bot
         print("DiscordCog init")
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True, aliases=["guild"])
     @commands.guild_only()
     async def server(self, ctx, subcommand=None):
         '''Lists info for the current guild'''
@@ -106,10 +106,14 @@ class Discord_Info(commands.Cog):
         embed.add_field(name="Number of emotes:", value=len(ctx.guild.emojis))
         await ctx.send(embed=embed)
 
-    @commands.command(help="Shows information about the user specified, if no user specified then it returns info for invoker")
-    async def user(self, ctx, user: Optional[discord.User]):
+    @commands.command(help="Shows information about the user specified, if no user specified then it returns info for invoker", aliases=["member"])
+    async def user(self, ctx, *, user: Optional[discord.User]):
         user = ctx.author if not user else user
-        member_obj = ctx.guild.get_member(user.id)
+        member_obj = None
+        try:
+            member_obj = ctx.guild.get_member(user.id)
+        except:
+            pass
 
         embed = embed_create(ctx, title=f"Info for {user}:")
         embed.set_thumbnail(url=user.avatar_url)
@@ -129,7 +133,7 @@ class Discord_Info(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    @commands.command(help="Shows info for an invite using a invite URL")
+    @commands.command(help="Shows info for an invite using a invite URL", aliases=["inv"])
     async def invite(self, ctx, invite: discord.Invite):
         embed = embed_create(ctx, title="Invite Info:")
         embed.set_thumbnail(url=invite.guild.icon_url)
@@ -142,7 +146,7 @@ class Discord_Info(commands.Cog):
         embed.add_field(name="Server created at:", value=invite.guild.created_at.strftime("%A, %d %b %Y, %I:%M:%S %p"), inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(help="Shows info for the channel specified using channel mention or ID")
+    @commands.command(help="Shows info for the channel specified using channel mention or ID", aliases=["chann"])
     @commands.guild_only()
     async def channel(self, ctx, channel):
         if channel.isnumeric():
@@ -181,7 +185,7 @@ class Discord_Info(commands.Cog):
 
     @commands.command(help="Shows info for the role specified using role mention or ID")
     @commands.guild_only()
-    async def role(self, ctx, role: discord.Role):
+    async def role(self, ctx, *, role: discord.Role):
         embed = embed_create(ctx, title=f"Info for @{role.name}:")
 
         hex_color = "#{:02x}{:02x}{:02x}".format(role.color.r, role.color.g, role.color.b)
@@ -208,7 +212,7 @@ class Discord_Info(commands.Cog):
         embed.add_field(name="Created at:", value=role.created_at.strftime("%A, %d %b %Y, %I:%M:%S %p"), inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(help="Shows info of emote using the emote ID")
+    @commands.command(help="Shows info of emote using the emote ID", aliases=["emoji"])
     @commands.guild_only()
     async def emote(self, ctx, emoji: discord.Emoji):
         embed = embed_create(ctx, title="Info for custom emote:")

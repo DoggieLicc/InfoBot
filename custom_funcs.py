@@ -1,4 +1,4 @@
-import discord
+import discord, time
 from discord.ext import commands
 
 def embed_create(ctx, title=discord.Embed.Empty, description=discord.Embed.Empty, color=0x46ff2e):
