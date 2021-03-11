@@ -1,4 +1,4 @@
-import discord
+import discord, traceback
 import discord.ext.commands as err
 from custom_funcs import embed_create
 
@@ -12,13 +12,22 @@ class ErrorCog(err.Cog):
         embed = embed_create(ctx, title="Error!", color=0xeb4034)
         print(f"Error: {error}")
         if isinstance(error, err.errors.CommandNotFound):
-            return
-        if isinstance(error, err.MissingRequiredArgument):
+            embed.add_field(name="Command not found!:", value=error)
+        elif isinstance(error, err.MissingRequiredArgument):
             embed.add_field(name="Missing Arguments:", value=error)
-        if isinstance(error, err.NoPrivateMessage):
+        elif isinstance(error, err.NoPrivateMessage):
             embed.add_field(name="No DMs!:", value=error)
-        if isinstance(error, err.errors.EmojiNotFound):
-            embed.add_field(name="Emote not found!", value=error)
+        elif isinstance(error, err.errors.EmojiNotFound):
+            embed.add_field(name="Emote not found!:", value=error)
+        elif isinstance(error, err.errors.RoleNotFound):
+            embed.add_field(name="Role not found!:", value=error)
+        elif isinstance(error, err.errors.BadInviteArgument):
+            embed.add_field(name="Invite not found!:", value=error)
+        else:
+            owner = self.bot.get_user(203161760297910273)
+            embed.add_field(name="Unhandled Error!:", value=f"{error.__class__.__name__}: {error}")
+            await owner.send(embed=embed)
+            return
 
         await ctx.send(embed=embed)
 
