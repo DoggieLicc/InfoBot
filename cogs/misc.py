@@ -5,17 +5,17 @@ from typing import Optional
 from datetime import timedelta
 
 def sync_wikipedia(ctx, search):
-        try:
-            page = wikipedia.page(search)
-            summary = (page.summary[:1900] + '...') if len(page.summary) > 1900 else page.summary
-            embed = embed_create(ctx, title=f"Wikipedia result for {search}", description=f"[**{page.title}**]({page.url})\n\n{summary}")
-            embed.set_thumbnail(url=page.images[0])
-            return embed
-        except wikipedia.exceptions.DisambiguationError as e:
-            return embed_create(ctx, title=f"Wikipedia results for {search}", description="\n".join(e.options))
-        except wikipedia.exceptions.PageError:
-            results = wikipedia.search(search)
-            return embed_create(ctx, title=f"**No wikipedia page found for {search}! Did you mean...**", description="\n".join(results), color=0xeb4034)
+    try:
+        page = wikipedia.page(search)
+        summary = (page.summary[:1900] + '...') if len(page.summary) > 1900 else page.summary
+        embed = embed_create(ctx, title=f"Wikipedia result for {search}", description=f"[**{page.title}**]({page.url})\n\n{summary}")
+        embed.set_thumbnail(url=page.images[0])
+        return embed
+    except wikipedia.exceptions.DisambiguationError as e:
+        return embed_create(ctx, title=f"Wikipedia results for {search}", description="\n".join(e.options))
+    except wikipedia.exceptions.PageError:
+        results = wikipedia.search(search)
+        return embed_create(ctx, title=f"**No wikipedia page found for {search}! Did you mean...**", description="\n".join(results), color=0xeb4034)
 
 def sync_whois(ctx, domain):
         try:
@@ -32,7 +32,7 @@ def sync_whois(ctx, domain):
         embed.add_field(name="Creation Date:", value=query.creation_date, inline=False)
         return embed
 
-class Misc(commands.Cog):
+class Misc(commands.Cog, name="Misc Commands"):
     def __init__(self, bot):
         self.bot = bot
         print("MiscCog init")

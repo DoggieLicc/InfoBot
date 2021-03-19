@@ -1,4 +1,4 @@
-import discord, time
+import discord, time, asqlite, asyncio
 from discord.ext import commands
 
 def embed_create(ctx, title=discord.Embed.Empty, description=discord.Embed.Empty, color=0x46ff2e):
@@ -50,3 +50,13 @@ def get_perms(permissions):
         if len(perms) == 0:
             perms.append("No moderator permissions")
         return perms
+
+async def load_prefixes(bot):
+    bot.prefixes = {}
+    async with asqlite.connect('data.db', check_same_thread=False) as conn:
+        async with conn.cursor() as cursor:
+            for row in await cursor.execute("SELECT guild, prefix FROM prefixes"):
+                bot.prefixes[row[0]] = row[1]
+            await asyncio.sleep(5)
+            await cursor.close()
+        await conn.close()
