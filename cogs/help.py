@@ -10,7 +10,7 @@ class HelpCog(commands.Cog):
             'hidden': True,
             'aliases': ["h"]
         }
-        help_obj = MyHelp(command_attrs=help_attributes)
+        help_obj = MyHelp(command_attrs=help_attributes, verify_checks=False)
         bot.help_command = help_obj
         print("HelpCog init")
 
