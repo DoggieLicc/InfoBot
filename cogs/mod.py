@@ -1,7 +1,8 @@
 import discord, time, asqlite, asyncio
 from discord.ext import commands
-from custom_funcs import embed_create, load_prefixes
+from custom_funcs import embed_create, load_prefixes, Emotes
 from datetime import timedelta
+from discord.ext.commands.cooldowns import BucketType
 
 class ModCog(commands.Cog, name="Mod Commands"):
     def __init__(self, bot):
@@ -22,10 +23,11 @@ class ModCog(commands.Cog, name="Mod Commands"):
         print(f'\n\nLogged in as: {self.bot.user.name} - {self.bot.user.id}\nVersion: {discord.__version__}\n')
         print(f'Successfully logged in and booted...!')
 
-    @commands.command(help="Sets a custom prefix for a server! You need **Manage Server** permissions for this!", aliases=["setprefix"])
+    @commands.command(aliases=["setprefix"])
     @commands.guild_only()
     @commands.check_any(commands.has_permissions(manage_guild=True), commands.is_owner())
     async def prefix(self, ctx, *, prefix=None):
+        """Sets a custom prefix for a server! You need **Manage Server** permissions for this!"""
         if not prefix:
             set_prefix = self.get_prefix(self.bot, ctx.message)
             embed = embed_create(ctx, title=f"Prefix for {ctx.guild.name}", description=f"The prefix is `{set_prefix}`")

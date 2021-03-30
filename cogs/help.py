@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from custom_funcs import embed_create
+from custom_funcs import embed_create, Emotes
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
