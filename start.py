@@ -4,25 +4,22 @@ try:
 except:
     pass
 
-import discord, traceback, json, time, logging
+import discord, traceback, json, time
 from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.members = True
 
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-
-initial_extensions = ['cogs.discord', 'cogs.help', 'cogs.error', 'cogs.dev', 'cogs.misc', 'cogs.mod']
+initial_extensions = ['cogs.discord', 'cogs.help', 'cogs.error', 'cogs.dev', 'cogs.misc', 'cogs.mod', 'cogs.game']
 default_prefix = "info$"
 
 bot = commands.Bot(case_insensitive=True, command_prefix=default_prefix, intents=intents, activity=discord.Game(name="info$help for help!"))
 bot.start_time = None
 bot.default_prefix = default_prefix
 bot.prefixes = {}
+
+with open("config.json") as config:
+    bot.secrets = json.load(config)
 
 def get_prefix(bot, message):
     if isinstance(message.channel, discord.channel.DMChannel):
@@ -35,9 +32,9 @@ if __name__ == '__main__':
 
 @bot.event
 async def on_message(message):
-    if message.author.bot or message.mention_everyone:
+    if message.author.bot:
         return
-    if bot.user.mentioned_in(message):
+    if message.content == f"<@!{bot.user.id}>" or message.content == f"<@{bot.user.id}>":
         set_prefix = get_prefix(bot, message)
         embed = discord.Embed(title=f"Pinged!", description=f"The set prefix is `{set_prefix}`", color=0x46ff2e)
         embed.set_footer(
@@ -47,4 +44,4 @@ async def on_message(message):
         await message.channel.send(embed=embed)
     await bot.process_commands(message)
 
-bot.run('bu', bot=True, reconnect=True)
+bot.run(bot.secrets["BOT_TOKEN"], bot=True, reconnect=True)
