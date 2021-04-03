@@ -1,6 +1,8 @@
-import discord, traceback
 import discord.ext.commands as err
+
+import discord
 from custom_funcs import embed_create, Emotes
+
 
 class ErrorCog(err.Cog):
     def __init__(self, bot):
@@ -12,7 +14,8 @@ class ErrorCog(err.Cog):
         embed = embed_create(ctx, title=f"{Emotes.xmark} Error!", color=0xeb4034)
         print(f"Error: {error}")
         if isinstance(error, err.errors.CommandNotFound):
-            embed.add_field(name="Command not found!:", value="You should use the ``help`` command for a list of commands!")
+            embed.add_field(name="Command not found!:",
+                            value="You should use the ``help`` command for a list of commands!")
         elif isinstance(error, err.MissingRequiredArgument):
             embed.add_field(name="Missing Arguments:", value="Do ``help <command>`` to get more info for a command")
         elif isinstance(error, err.NoPrivateMessage):
@@ -22,11 +25,14 @@ class ErrorCog(err.Cog):
         elif isinstance(error, err.errors.RoleNotFound):
             embed.add_field(name="Role not found!:", value="Use the role's name, ID, or just mention it")
         elif isinstance(error, err.errors.BadInviteArgument):
-            embed.add_field(name="Invite not found!:", value="Use the invite URL, or its code")
+            embed.add_field(name="Invite not found!:",
+                            value="Use the invite URL, or its code (If you want the bot's invite link, use the ``info`` command!)")
         elif isinstance(error, err.CheckAnyFailure):
-            embed.add_field(name="You don't have permissions for this command!:", value="You need the `Manage Server` permission!")
+            embed.add_field(name="You don't have permissions for this command!:",
+                            value="You need the `Manage Server` permission!")
         elif isinstance(error, err.errors.NotOwner):
-            return await ctx.send(content="https://cdn.discordapp.com/attachments/559455534965850142/821118783929974784/realopeneval.mp4")
+            return await ctx.send(
+                content="https://cdn.discordapp.com/attachments/559455534965850142/821118783929974784/realopeneval.mp4")
         elif isinstance(error, err.CommandOnCooldown):
             embed.add_field(name="Cooldown!:", value=error)
         elif isinstance(error, discord.Forbidden):

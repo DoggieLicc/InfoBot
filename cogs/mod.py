@@ -1,14 +1,16 @@
-import discord, time, asqlite, asyncio
 from discord.ext import commands
-from custom_funcs import embed_create, load_prefixes, Emotes
-from datetime import timedelta
-from discord.ext.commands.cooldowns import BucketType
+
+import asqlite
+import discord
+import time
+from custom_funcs import embed_create, load_prefixes
+
 
 class ModCog(commands.Cog, name="Mod Commands"):
     def __init__(self, bot):
         self.bot = bot
         self.bot.prefixes = {}
-        bot.command_prefix=self.get_prefix
+        bot.command_prefix = self.get_prefix
         print("PrefixCog init")
 
     def get_prefix(self, bot, message):
@@ -37,9 +39,11 @@ class ModCog(commands.Cog, name="Mod Commands"):
             async with conn.cursor() as cursor:
                 await cursor.execute("REPLACE INTO prefixes VALUES(?, ?)", (ctx.guild.id, prefix))
             await conn.commit()
-        embed = embed_create(ctx, title="Custom prefix set!", description=f"Custom prefix `{prefix}` has been set for {ctx.guild.name}!")
+        embed = embed_create(ctx, title="Custom prefix set!",
+                             description=f"Custom prefix `{prefix}` has been set for {ctx.guild.name}!")
         await ctx.send(embed=embed)
         await load_prefixes(self.bot)
+
 
 def setup(bot):
     bot.add_cog(ModCog(bot))
