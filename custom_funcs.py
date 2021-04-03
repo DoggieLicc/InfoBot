@@ -1,6 +1,7 @@
-import discord, time, asqlite, asyncio
+import discord, time, asqlite, asyncio, re
 from discord.ext import commands
 from uuid import UUID
+
 
 def embed_create(ctx, title=discord.Embed.Empty, description=discord.Embed.Empty, color=0x46ff2e):
     embed = discord.Embed(description=description, title=title, color=color)
@@ -10,47 +11,49 @@ def embed_create(ctx, title=discord.Embed.Empty, description=discord.Embed.Empty
     )
     return embed
 
+
 def get_perms(permissions):
-        perms = []
-        if permissions.administrator:
-            perms.append("Administrator")
-        if permissions.manage_guild:
-            perms.append("Manage guild")
-        if permissions.ban_members:
-            perms.append("Ban members")
-        if permissions.kick_members:
-            perms.append("Kick members")
-        if permissions.manage_channels:
-            perms.append("Manage channels")
-        if permissions.manage_emojis:
-            perms.append("Manage custom emotes")
-        if permissions.manage_messages:
-            perms.append("Manage messages")
-        if permissions.manage_permissions:
-            perms.append("Manage permissions")
-        if permissions.manage_roles:
-            perms.append("Manage roles")
-        if permissions.mention_everyone:
-            perms.append("Mention everyone")
-        if permissions.manage_emojis:
-            perms.append("Manage emojis")
-        if permissions.manage_webhooks:
-            perms.append("Manage webhooks")
-        if permissions.move_members:
-            perms.append("Move members")
-        if permissions.mute_members:
-            perms.append("Mute members")
-        if permissions.deafen_members:
-            perms.append("Deafen members")
-        if permissions.priority_speaker:
-            perms.append("Priority speaker")
-        if permissions.view_audit_log:
-            perms.append("See audit log")
-        if permissions.create_instant_invite:
-            perms.append("Create instant invites")
-        if len(perms) == 0:
-            perms.append("No moderator permissions")
-        return perms
+    perms = []
+    if permissions.administrator:
+        perms.append("Administrator")
+    if permissions.manage_guild:
+        perms.append("Manage guild")
+    if permissions.ban_members:
+        perms.append("Ban members")
+    if permissions.kick_members:
+        perms.append("Kick members")
+    if permissions.manage_channels:
+        perms.append("Manage channels")
+    if permissions.manage_emojis:
+        perms.append("Manage custom emotes")
+    if permissions.manage_messages:
+        perms.append("Manage messages")
+    if permissions.manage_permissions:
+        perms.append("Manage permissions")
+    if permissions.manage_roles:
+        perms.append("Manage roles")
+    if permissions.mention_everyone:
+        perms.append("Mention everyone")
+    if permissions.manage_emojis:
+        perms.append("Manage emojis")
+    if permissions.manage_webhooks:
+        perms.append("Manage webhooks")
+    if permissions.move_members:
+        perms.append("Move members")
+    if permissions.mute_members:
+        perms.append("Mute members")
+    if permissions.deafen_members:
+        perms.append("Deafen members")
+    if permissions.priority_speaker:
+        perms.append("Priority speaker")
+    if permissions.view_audit_log:
+        perms.append("See audit log")
+    if permissions.create_instant_invite:
+        perms.append("Create instant invites")
+    if len(perms) == 0:
+        perms.append("No moderator permissions")
+    return perms
+
 
 async def load_prefixes(bot):
     bot.prefixes = {}
@@ -61,6 +64,7 @@ async def load_prefixes(bot):
             await asyncio.sleep(5)
             await cursor.close()
         await conn.close()
+
 
 class Emotes():
     botTag = "<:botTag:230105988211015680>"
@@ -101,20 +105,27 @@ class Emotes():
     stafftools = "<:stafftools:314348604095594498>"
     thread = "<:threadchannel:824240882697633812>"
     mention = "<:mention:658538492019867683>"
+    rules = "<:rules:781581022059692043>"
+    news = "<:news:658522693058166804>"
 
     def channel(chann):
-        if isinstance(chann, discord.TextChannel):
-            if chann.is_nsfw():
-                return Emotes.nsfw
+        if chann.type == discord.ChannelType.text:
+            if isinstance(chann, discord.TextChannel):
+                if chann.is_nsfw():
+                    return Emotes.nsfw
             return Emotes.text
-        if isinstance(chann, discord.VoiceChannel):
+        if chann.type == discord.ChannelType.news:
+            return Emotes.news
+        if chann.type == discord.ChannelType.voice:
             return Emotes.voice
-        if isinstance(chann, discord.StoreChannel):
+        if chann.type == discord.ChannelType.store:
             return Emotes.store
-        if isinstance(chann, discord.CategoryChannel):
+        if chann.type == discord.ChannelType.category:
             return ""
-        if isinstance(chann, discord.DMChannel):
+        if chann.type == discord.ChannelType.private:
             return Emotes.thread
+        # if chann.type == discord.ChannelType.stage:
+        #    return Emotes.stage
 
     def badges(user):
         badge = ""
@@ -139,9 +150,9 @@ class Emotes():
             badge += Emotes.balance
         if "hypesquad_brilliance" in flags:
             badge += Emotes.brilliance
-        if  "verified_bot" in flags:
+        if "verified_bot" in flags:
             badge += Emotes.verified
-        if  "verified_bot_developer" in flags:
+        if "verified_bot_developer" in flags:
             badge += Emotes.verified
 
         return badge
@@ -165,3 +176,43 @@ def is_uuid4(string):
     except ValueError:
         return False
     return uuid.hex == string
+
+
+def get_from_guilds(bot, getter, argument):
+    result = None
+    for guild in bot.guilds:
+        result = getattr(guild, getter)(argument)
+        if result:
+            return result
+    return result
+
+
+id_regex = re.compile(r'([0-9]{15,20})$')
+
+
+class StoreChannelConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        bot = ctx.bot
+        match = id_regex.match(argument) or re.match(r'<#([0-9]+)>$', argument)
+        result = None
+        guild = ctx.guild
+
+        if match is None:
+            if guild:
+                result = discord.utils.get(guild.channels, name=argument)
+            else:
+                def check(c):
+                    return isinstance(c, discord.StoreChannel) and c.name == argument
+
+                result = discord.utils.find(check, bot.get_all_channels())
+        else:
+            channel_id = int(match.group(1))
+            if guild:
+                result = guild.get_channel(channel_id)
+            else:
+                result = get_from_guilds(bot, 'get_channel', channel_id)
+
+        if not isinstance(result, discord.StoreChannel):
+            raise discord.ChannelNotFound(argument)
+
+        return result
