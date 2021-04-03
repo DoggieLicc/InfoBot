@@ -1,6 +1,8 @@
 import discord
 from discord.ext import commands
-from custom_funcs import embed_create, Emotes
+
+from custom_funcs import embed_create
+
 
 class HelpCog(commands.Cog):
     def __init__(self, bot):
@@ -14,16 +16,18 @@ class HelpCog(commands.Cog):
         bot.help_command = help_obj
         print("HelpCog init")
 
+
 class MyHelp(commands.HelpCommand):
     def get_command_signature(self, command):
         return '%s%s %s' % (self.clean_prefix, command.qualified_name, command.signature)
 
     async def send_bot_help(self, mapping):
-        embed = embed_create(self.context, title="Help:", description=f"``{self.clean_prefix}help [command]`` for command info")
-        for cog, commands in mapping.items():
-           filtered = await self.filter_commands(commands, sort=True)
-           command_signatures = [self.get_command_signature(c) for c in filtered]
-           if command_signatures:
+        embed = embed_create(self.context, title="Help:",
+                             description=f"``{self.clean_prefix}help [command]`` for command info")
+        for cog, command in mapping.items():
+            filtered = await self.filter_commands(command, sort=True)
+            command_signatures = [self.get_command_signature(c) for c in filtered]
+            if command_signatures:
                 cog_name = getattr(cog, "qualified_name", "Other")
                 embed.add_field(name=cog_name, value="\n".join(command_signatures), inline=False)
 
@@ -53,6 +57,7 @@ class MyHelp(commands.HelpCommand):
         embed = embed_create(self.context, title="Help command error!", description=error, color=0xeb4034)
         channel = self.get_destination()
         await channel.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(HelpCog(bot))
