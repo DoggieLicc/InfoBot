@@ -17,7 +17,7 @@ initial_extensions = ['cogs.discord', 'cogs.help', 'cogs.error', 'cogs.dev', 'co
 default_prefix = "info$"
 
 bot = commands.Bot(case_insensitive=True, command_prefix=default_prefix, intents=intents,
-                   activity=discord.Game(name="info$help for help!"))
+                   activity=discord.Game(name="info$help for help!"), strip_after_prefix=True)
 bot.start_time = None
 bot.default_prefix = default_prefix
 bot.prefixes = {}
