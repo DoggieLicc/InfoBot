@@ -124,8 +124,8 @@ class Emotes():
             return ""
         if chann.type == discord.ChannelType.private:
             return Emotes.thread
-        # if chann.type == discord.ChannelType.stage:
-        #    return Emotes.stage
+        if chann.type == discord.ChannelType.stage_voice:
+            return Emotes.stage
 
     def badges(user):
         badge = ""
@@ -189,30 +189,3 @@ def get_from_guilds(bot, getter, argument):
 
 id_regex = re.compile(r'([0-9]{15,20})$')
 
-
-class StoreChannelConverter(commands.Converter):
-    async def convert(self, ctx, argument):
-        bot = ctx.bot
-        match = id_regex.match(argument) or re.match(r'<#([0-9]+)>$', argument)
-        result = None
-        guild = ctx.guild
-
-        if match is None:
-            if guild:
-                result = discord.utils.get(guild.channels, name=argument)
-            else:
-                def check(c):
-                    return isinstance(c, discord.StoreChannel) and c.name == argument
-
-                result = discord.utils.find(check, bot.get_all_channels())
-        else:
-            channel_id = int(match.group(1))
-            if guild:
-                result = guild.get_channel(channel_id)
-            else:
-                result = get_from_guilds(bot, 'get_channel', channel_id)
-
-        if not isinstance(result, discord.StoreChannel):
-            raise discord.ChannelNotFound(argument)
-
-        return result

@@ -1,12 +1,11 @@
+import base64
+import datetime
 from typing import Optional, Union
 
 from discord.ext import commands
 
-import aiohttp
-import base64
-import datetime
 import discord
-from custom_funcs import embed_create, get_perms, Emotes, StoreChannelConverter
+from custom_funcs import embed_create, get_perms, Emotes
 
 
 class DiscordInfo(commands.Cog, name="Discord Info"):
@@ -124,7 +123,7 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["member"])
-    async def user(self, ctx, *, user: Union[discord.User, discord.Member, None]):
+    async def user(self, ctx, *, user: Union[discord.Member, discord.User, None]):
         """Shows information about the user specified, if no user specified then it returns info for invoker"""
         user = user or ctx.author
         flags = [name.replace('_', ' ').title() for name, value in dict.fromkeys(iter(user.public_flags)) if value]
@@ -184,29 +183,10 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
     @commands.command(aliases=["chann"])
     @commands.guild_only()
     async def channel(self, ctx, *, channel: Union[
-        discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, StoreChannelConverter, str]):
+        discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StoreChannel, discord.StageChannel]):
         """Shows info for the channel specified using channel mention or ID"""
 
-        if isinstance(channel, str):
-            if channel.isnumeric() and ctx.guild.get_channel(int(channel)) != None:
-                channel = ctx.guild.get_channel(int(channel)) or channel
-            channel = ctx.message.channel_mentions[0] if len(ctx.message.channel_mentions) > 0 else channel
-
-        if isinstance(channel, str):
-            if channel.isnumeric():
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f'https://discord.com/api/channels/{channel}', headers=self.headers) as resp:
-                        if resp.status in [404, 403]:
-                            pass
-                        elif resp.status == 200:
-                            embed = embed_create(ctx, title="Error!",
-                                                 description="Currently can't get stage channel info.", color=0xeb4034)
-                            return await ctx.send(embed=embed)
-
-            embed = embed_create(ctx, title="Error!", description="Channel not found!", color=0xeb4034)
-            return await ctx.send(embed=embed)
-
-        embed = embed_create(ctx, title=f"Info for ``{channel.name}`` {Emotes.channel(channel)}")
+        embed = embed_create(ctx, title=f"Info for {channel.name}: {Emotes.channel(channel)}")
         embed.set_thumbnail(url=ctx.guild.icon_url)
 
         if isinstance(channel, discord.TextChannel):
@@ -219,8 +199,13 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
             user_limit = "Disabled" if channel.user_limit == 0 else f"{channel.user_limit} max"
             embed.add_field(name="Bitrate:", value=f"{round(channel.bitrate / 1000)}kbps")
             embed.add_field(name="User limit:", value=user_limit)
+            embed.add_field(name="Region:", value=str((channel.rtc_region or "Automatic")).title())
 
-        embed.add_field(name="Channel type:", value=f"{str(channel.type).capitalize()} channel", inline=False)
+        if isinstance(channel, discord.StageChannel):
+            embed.add_field(name="Region:", value=str((channel.rtc_region or "Automatic")).title())
+
+        embed.add_field(name="Channel type:", value=f"{str(channel.type).replace('_',' ').title()} channel",
+                        inline=False)
         embed.add_field(name="Channel category:", value=channel.category)
         embed.add_field(name="Channel ID:", value=channel.id, inline=False)
         embed.add_field(name="Creation date:", value=channel.created_at.strftime("%A, %d %b %Y, %I:%M:%S %p"),
