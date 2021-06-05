@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 from discord.ext import commands
 
+import binascii
 import discord
 from custom_funcs import embed_create, get_perms, Emotes
 
@@ -35,17 +36,25 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
 
         embed.set_thumbnail(url=server.icon_url)
         embed.add_field(name="General Info:",
-                        value=f"Description: {server.description or 'No description'}\nOwner: {server.owner}\nRegion: {str(server.region).replace('-', ' ').title()}\nID: {server.id}\nCreation date: {server.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
+                        value=f"Description: {server.description or 'No description'}\nOwner: {server.owner}\nRegion: "
+                              f"{str(server.region).replace('-', ' ').title()}\nID: {server.id}\nCreation date: "
+                              f"{server.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
                         inline=False)
         embed.add_field(name="Special features:", value=", ".join(features))
         embed.add_field(name=f"{Emotes.level4} Boost Info:",
-                        value=f"Boost level: {server.premium_tier} \nAmount of boosters: {server.premium_subscription_count}\nBooster Role: {server.premium_subscriber_role.mention if server.premium_subscriber_role else 'No role'}",
+                        value=f"Boost level: {server.premium_tier} \nAmount of boosters: "
+                              f"{server.premium_subscription_count}\nBooster Role: "
+                              f"{server.premium_subscriber_role.mention if server.premium_subscriber_role else 'None'}",
                         inline=False)
         embed.add_field(name="Counts:",
-                        value=f"Members: {server.member_count} members\nRoles: {len(server.roles)} roles\nText channels: {len(server.text_channels)} channels\nVoice Channels: {len(server.voice_channels)} channels\nEmotes: {len(ctx.guild.emojis)} emotes",
+                        value=f"Members: {server.member_count} members\nRoles: {len(server.roles)} roles\n"
+                              f"Text channels: {len(server.text_channels)} channels\nVoice Channels: "
+                              f"{len(server.voice_channels)} channels\nEmotes: {len(ctx.guild.emojis)} emotes",
                         inline=False)
         embed.add_field(name="Security Info:",
-                        value=f"2FA required?: {'Yes' if server.mfa_level else 'No'}\nVerification Level: {str(server.verification_level).replace('_', ' ').title()}\nNSFW Filter: {str(server.explicit_content_filter).replace('_', ' ').title()}")
+                        value=f"2FA required?: {'Yes' if server.mfa_level else 'No'}\nVerification Level: "
+                              f"{str(server.verification_level).replace('_', ' ').title()}\nNSFW Filter: "
+                              f"{str(server.explicit_content_filter).replace('_', ' ').title()}")
         embed.set_image(url=server.banner_url)
         await ctx.send(embed=embed)
 
@@ -59,19 +68,21 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
             if len(private) >= 5000:
                 try:
                     await ctx.author.send(embed=private)
-                except:
+                except discord.Forbidden:
                     err = embed_create(ctx, title="Error!",
                                        description="The bot can't DM you! Check your privacy settings...")
                     return await ctx.send(embed=err)
                 private = embed_create(ctx, title="Continuing...")
             private.add_field(name=f"@{role.name}",
-                              value=f"Top permission: {perms[0]}\n{len(role.members)} member(s) with {role.mention}\nRole ID: {role.id}\nCreated at: {role.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
+                              value=f"Top permission: {perms[0]}\n{len(role.members)} member(s) with {role.mention}"
+                                    f"\nRole ID: {role.id}\nCreated at:"
+                                    f"{role.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
                               inline=False)
         try:
             public = embed_create(ctx, title="Success!", description="List of roles have been sent to you!")
             await ctx.author.send(embed=private)
             await ctx.send(embed=public)
-        except:
+        except discord.Forbidden:
             err = embed_create(ctx, title="Error!", description="The bot can't DM you! Check your privacy settings...")
             return await ctx.send(embed=err)
 
@@ -84,19 +95,21 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
             if len(private) >= 5000:
                 try:
                     await ctx.author.send(embed=private)
-                except:
+                except discord.Forbidden:
                     err = embed_create(ctx, title="Error!",
                                        description="The bot can't DM you! Check your privacy settings...")
                     return await ctx.send(embed=err)
                 private = embed_create(ctx, title="Continuing...")
             private.add_field(name=f"Channel {channel.name}",
-                              value=f"Category name: {channel.mention} in {channel.category} \nChannel type: {str(channel.type).capitalize()}\nChannel ID: {channel.id}\nCreated at: {channel.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
+                              value=f"Category name: {channel.mention} in {channel.category} \nChannel type: "
+                                    f"{str(channel.type).capitalize()}\nChannel ID: {channel.id}\nCreated at: "
+                                    f"{channel.created_at.strftime('%A, %d %b %Y, %I:%M:%S %p')}",
                               inline=False)
         try:
             public = embed_create(ctx, title="Success!", description="List of channels have been sent to you!")
             await ctx.author.send(embed=private)
             await ctx.send(embed=public)
-        except:
+        except discord.Forbidden:
             err = embed_create(ctx, title="Error!", description="The bot can't DM you! Check your privacy settings...")
             return await ctx.send(embed=err)
 
@@ -115,6 +128,9 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
                 if char_count >= 900:
                     embed.add_field(name="᲼᲼᲼᲼᲼᲼", value="".join(emoji_rendered), inline=False)
                     emoji_rendered, char_count = [], 0
+                    if len(embed) > 5000:
+                        await ctx.send(embed=embed)
+                        embed = embed_create(ctx, title="Showing all emotes:")
                 emoji_rendered.append(str(emoji))
                 char_count += len(str(emoji))
 
@@ -123,7 +139,7 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["member"])
-    async def user(self, ctx, *, user: Union[discord.Member, discord.User, None]):
+    async def user(self, ctx, *, user: Optional[Union[discord.Member, discord.User]]):
         """Shows information about the user specified, if no user specified then it returns info for invoker"""
         user = user or ctx.author
         flags = [name.replace('_', ' ').title() for name, value in dict.fromkeys(iter(user.public_flags)) if value]
@@ -131,14 +147,15 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
         embed = embed_create(ctx, title=f"Info for {user} {Emotes.badges(user)}:")
         embed.set_thumbnail(url=user.avatar_url)
         embed.add_field(name=f"Is bot? {Emotes.botTag}", value=(
-            f"Yes\n[Invite This Bot](https://discord.com/oauth2/authorize?client_id={user.id}&permissions=0&scope=bot)" if user.bot else "No"))
+            f"Yes\n[Invite This Bot](https://discord.com/oauth2/authorize?client_id={user.id}&permissions=0&scope=bot)"
+            if user.bot else "No"))
         embed.add_field(name="User ID:", value=user.id)
         embed.add_field(name="Creation Date:", value=user.created_at.strftime("%A, %d %b %Y, %I:%M:%S %p"),
                         inline=False)
         embed.add_field(name="Badges:", value="\n".join(flags) or "None")
 
         if isinstance(user, discord.Member):
-            role_mentions = [role.mention for role in user.roles]
+            role_mentions = [role.mention for role in reversed(user.roles)]
             perms = get_perms(user.guild_permissions)
             embed.add_field(name="Server Nickname:", value=user.nick or "No nickname")
             embed.add_field(name="Joined Server At:", value=user.joined_at.strftime("%A, %d %b %Y, %I:%M:%S %p"),
@@ -166,10 +183,11 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
                         value=f"Name: #{invite.channel.name} {Emotes.channel(invite.channel)}\nID: {invite.channel.id}",
                         inline=True)
         embed.add_field(name="Active members: Total members",
-                        value=f"{invite.approximate_presence_count} active member(s): {invite.approximate_member_count} total member(s)",
+                        value=f"{invite.approximate_presence_count} active member(s): {invite.approximate_member_count}"
+                              f" total member(s)",
                         inline=False)
         embed.add_field(name="Invite creator:",
-                        value=(f"{invite.inviter}\nID: {invite.inviter.id}") if invite.inviter else "Unknown",
+                        value=f"{invite.inviter}\nID: {invite.inviter.id}" if invite.inviter else "Unknown",
                         inline=False)
         embed.add_field(name="Invite ID:", value=invite.id, inline=False)
         embed.add_field(name="Server name:", value=invite.guild, inline=False)
@@ -180,10 +198,11 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
                         inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["chann"])
+    @commands.command(aliases=["chann", "chan"])
     @commands.guild_only()
     async def channel(self, ctx, *, channel: Union[
-        discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StoreChannel, discord.StageChannel]):
+                      discord.TextChannel, discord.VoiceChannel, discord.CategoryChannel, discord.StoreChannel,
+                      discord.StageChannel]):
         """Shows info for the channel specified using channel mention or ID"""
 
         embed = embed_create(ctx, title=f"Info for {channel.name}: {Emotes.channel(channel)}")
@@ -196,15 +215,16 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
             embed.add_field(name="Topic:", value=(channel.topic or "No topic set"), inline=False)
 
         if isinstance(channel, discord.VoiceChannel):
-            user_limit = "Disabled" if channel.user_limit == 0 else f"{channel.user_limit} max"
             embed.add_field(name="Bitrate:", value=f"{round(channel.bitrate / 1000)}kbps")
-            embed.add_field(name="User limit:", value=user_limit)
             embed.add_field(name="Region:", value=str((channel.rtc_region or "Automatic")).title())
+            embed.add_field(name="Connected:", value=f"{len(channel.members)} connected\
+            {f'/ {channel.user_limit} max' if channel.user_limit else ''}", inline=False)
 
         if isinstance(channel, discord.StageChannel):
+            embed.add_field(name="Connected:", value=f"{len(channel.members)} connected")
             embed.add_field(name="Region:", value=str((channel.rtc_region or "Automatic")).title())
 
-        embed.add_field(name="Channel type:", value=f"{str(channel.type).replace('_',' ').title()} channel",
+        embed.add_field(name="Channel type:", value=f"{str(channel.type).replace('_', ' ').title()} channel",
                         inline=False)
         embed.add_field(name="Channel category:", value=channel.category)
         embed.add_field(name="Channel ID:", value=channel.id, inline=False)
@@ -243,14 +263,19 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["emoji"])
-    @commands.guild_only()
-    async def emote(self, ctx, emoji: discord.Emoji):
+    async def emote(self, ctx, emoji: Union[discord.Emoji, discord.PartialEmoji]):
         """Shows info of emote using the emote ID"""
+        if isinstance(emoji, discord.PartialEmoji):
+            if emoji.is_unicode_emoji():
+                return
+
         embed = embed_create(ctx, title=f"Info for custom emote: {Emotes.emoji}")
         embed.set_thumbnail(url=emoji.url)
         embed.add_field(name="Emote name:", value=emoji.name, inline=False)
         embed.add_field(name="Emote ID:", value=emoji.id, inline=False)
         embed.add_field(name="Animated?:", value=("Yes" if emoji.animated else "No"))
+        if isinstance(emoji, discord.PartialEmoji):
+            return await ctx.send(embed=embed)
         embed.add_field(name="Available?:", value=("Yes" if emoji.available else "No"))
         embed.add_field(name="Created at:", value=emoji.created_at.strftime("%A, %d %b %Y, %I:%M:%S %p"), inline=False)
         await ctx.send(embed=embed)
@@ -264,10 +289,6 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
             return await ctx.send(embed=embed)
         try:
             user = await self.bot.fetch_user(int(base64.b64decode(token[0])))
-        except discord.NotFound:
-            embed = embed_create(ctx, title="Error!", description="Invalid token!", color=0xeb4034)
-            return await ctx.send(embed=embed)
-        try:
             bytes_int = base64.urlsafe_b64decode(token[1] + "==")
             bytes_decoded = int.from_bytes(bytes_int, "big")
         except Exception:

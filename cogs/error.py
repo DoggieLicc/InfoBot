@@ -1,5 +1,7 @@
 import discord.ext.commands as err
 
+import traceback
+from io import StringIO
 import discord
 from custom_funcs import embed_create, Emotes
 
@@ -26,7 +28,8 @@ class ErrorCog(err.Cog):
             embed.add_field(name="Role not found!:", value="Use the role's name, ID, or just mention it")
         elif isinstance(error, err.errors.BadInviteArgument):
             embed.add_field(name="Invite not found!:",
-                            value="Use the invite URL, or its code (If you want the bot's invite link, use the ``info`` command!)")
+                            value="Use the invite URL, or its code (If you want the bot's invite link, use the "
+                                  "``info`` command!)")
         elif isinstance(error, err.CheckAnyFailure):
             embed.add_field(name="You don't have permissions for this command!:",
                             value="You need the `Manage Server` permission!")
@@ -35,13 +38,23 @@ class ErrorCog(err.Cog):
                 content="https://cdn.discordapp.com/attachments/559455534965850142/821118783929974784/realopeneval.mp4")
         elif isinstance(error, err.CommandOnCooldown):
             embed.add_field(name="Cooldown!:", value=error)
-        elif isinstance(error, discord.Forbidden):
-            await ctx.send(f"{Emotes.xmark} This bot needs the ``Embed Links`` permission to function!")
+        elif isinstance(error, err.BadUnionArgument):
+            embed.add_field(name="Bad argument:", value="The argument specified was incorrect, please use ``help "
+                                                        "<command>`` for command help.")
         else:
+            etype = type(error)
+            trace = error.__traceback__
+            lines = traceback.format_exception(etype, error, trace)
+            traceback_t = ''.join(lines)
+            buffer = StringIO(traceback_t)
+            file = discord.File(buffer, filename='traceback.py')
+
             owner = self.bot.get_user(203161760297910273)
-            embed.add_field(name="Unhandled Error!:", value=f"{error.__class__.__name__}: {error}", inline=False)
+            embed.add_field(name="Unhandled Error!:", value=f"{error}", inline=False)
             embed.add_field(name="Message content:", value=ctx.message.content, inline=False)
-            await owner.send(embed=embed)
+            embed.add_field(name="Extra Info:", value=f"Guild: {ctx.guild}: {ctx.guild.id if ctx.guild else 'None'}\n"
+                                                      f"Channel: {ctx.channel}:", inline=False)
+            await owner.send(file=file, embed=embed)
             return
 
         await ctx.send(embed=embed)

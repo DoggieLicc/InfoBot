@@ -31,39 +31,41 @@ class DevCog(commands.Cog):
 
     @dev.command(hidden=True)
     @commands.is_owner()
-    async def load(self, ctx, *, cog: str):
-        try:
-            self.bot.load_extension(cog)
-        except Exception as e:
-            embed = embed_create(ctx, title="Error!", description=f"{type(e).__name__} - {e}", color=0xeb4034)
-            return await ctx.send(embed=embed)
+    async def load(self, ctx, *cogs: str):
+        for cog in cogs:
+            try:
+                self.bot.load_extension(f'cogs.{cog}')
+            except Exception as e:
+                embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
+                return await ctx.send(embed=embed)
 
-        embed = embed_create(ctx, title="Success!", description=f"Cog ``{cog}`` has been loaded!")
+        embed = discord.Embed(title='Success!', description=f'Cogs ``{", ".join(cogs)}`` has been loaded!')
         await ctx.send(embed=embed)
 
-    @dev.command(nahidden=True)
+    @dev.command(hidden=True)
     @commands.is_owner()
-    async def unload(self, ctx, *, cog: str):
-        try:
-            self.bot.unload_extension(cog)
-        except Exception as e:
-            embed = embed_create(ctx, title="Error!", description=f"{type(e).__name__} - {e}", color=0xeb4034)
-            return await ctx.send(embed=embed)
+    async def unload(self, ctx, *cogs: str):
+        for cog in cogs:
+            try:
+                self.bot.unload_extension(f'cogs.{cog}')
+            except Exception as e:
+                embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
+                return await ctx.send(embed=embed)
 
-        embed = embed_create(ctx, title="Success!", description=f"Cog ``{cog}`` has been unloaded!")
+        embed = discord.Embed(title='Success!', description=f'Cogs ``{", ".join(cogs)}`` has been unloaded!')
         await ctx.send(embed=embed)
 
-    @dev.command(nahidden=True)
+    @dev.command(hidden=True)
     @commands.is_owner()
-    async def reload(self, ctx, *, cog: str):
-        try:
-            self.bot.unload_extension(cog)
-            self.bot.load_extension(cog)
-        except Exception as e:
-            embed = embed_create(ctx, title="Error!", description=f"{type(e).__name__} - {e}", color=0xeb4034)
-            return await ctx.send(embed=embed)
+    async def reload(self, ctx, *cogs: str):
+        for cog in cogs:
+            try:
+                self.bot.reload_extension(f'cogs.{cog}')
+            except Exception as e:
+                embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
+                return await ctx.send(embed=embed)
 
-        embed = embed_create(ctx, title="Success!", description=f"Cog ``{cog}`` has been reloaded!")
+        embed = discord.Embed(title='Success!', description=f'Cog ``{", ".join(cogs)}`` has been reloaded!')
         await ctx.send(embed=embed)
 
     @dev.command(hidden=True)
@@ -136,27 +138,6 @@ class DevCog(commands.Cog):
 
     @dev.command(hidden=True)
     @commands.is_owner()
-    async def prefix(self, ctx, id, prefix=None):
-        try:
-            server = await self.bot.fetch_guild(id)
-        except Exception:
-            embed = embed_create(ctx, title="Error!", description="Couldn't find a guild with that ID!", color=0xeb4034)
-            return await ctx.send(embed=embed)
-        if not prefix:
-            set_prefix = self.bot.prefixes.get(int(id), self.bot.default_prefix)
-            embed = embed_create(ctx, title=f"Prefix for {server.name}:", description=f"The prefix is `{set_prefix}`")
-            return await ctx.send(embed=embed)
-        async with asqlite.connect('data.db', check_same_thread=False) as conn:
-            async with conn.cursor() as cursor:
-                await cursor.execute("REPLACE INTO prefixes VALUES(?, ?)", (id, prefix))
-            await conn.commit()
-        embed = embed_create(ctx, title="Custom prefix set!",
-                             description=f"Custom prefix `{prefix}` has been set for {server.name}!")
-        await ctx.send(embed=embed)
-        await load_prefixes(self.bot)
-
-    @dev.command(hidden=True)
-    @commands.is_owner()
     async def sudo(self, ctx, channel: Optional[discord.TextChannel], who: Union[discord.Member, discord.User], *,
                    command: str):
         msg = copy.copy(ctx.message)
@@ -170,16 +151,6 @@ class DevCog(commands.Cog):
         msg.content = prefix + command
         new_ctx = await self.bot.get_context(msg, cls=type(ctx))
         await self.bot.invoke(new_ctx)
-
-    @commands.Cog.listener()
-    async def on_command_completion(self, ctx):
-        if ctx.author.id == 203161760297910273:
-            return
-        channel = self.bot.get_channel(820782378607575051)
-        embed = embed_create(ctx, title=f"Command sent in {ctx.guild}!", description=ctx.message.content)
-        embed.add_field(name="Command Failed?", value=ctx.command_failed, inline=False)
-        embed.add_field(name="Valid Command?", value=ctx.valid, inline=False)
-        await channel.send(embed=embed)
 
 
 def setup(bot):
