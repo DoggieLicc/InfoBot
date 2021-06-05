@@ -35,6 +35,15 @@ class ModCog(commands.Cog, name="Mod Commands"):
             embed = embed_create(ctx, title=f"Prefix for {ctx.guild.name}", description=f"The prefix is `{set_prefix}`")
             await ctx.send(embed=embed)
             return
+        if prefix == ctx.prefix:
+            embed = embed_create(ctx, title="That prefix is already set!",
+                                 description=f'The prefix is already set to `{prefix}`!', color=discord.Color.red())
+            return await ctx.send(embed=embed)
+        if len(prefix) >= 1990:
+            embed = embed_create(ctx, title="Prefix too long!",
+                                 description=f'Setting the prefix to that will make it impossible to change it.',
+                                 color=discord.Color.red())
+            return await ctx.send(embed=embed)
         async with asqlite.connect('data.db', check_same_thread=False) as conn:
             async with conn.cursor() as cursor:
                 await cursor.execute("REPLACE INTO prefixes VALUES(?, ?)", (ctx.guild.id, prefix))
