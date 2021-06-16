@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 from discord.ext import commands
 
-import binascii
 import discord
 from custom_funcs import embed_create, get_perms, Emotes
 
@@ -139,9 +138,18 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["member"])
-    async def user(self, ctx, *, user: Optional[Union[discord.Member, discord.User]]):
+    async def user(self, ctx, *, user: Optional[Union[discord.Member, discord.User, str]]):
         """Shows information about the user specified, if no user specified then it returns info for invoker"""
-        user = user or ctx.author
+        user: Union[discord.Member, discord.User, str] = user or ctx.author
+
+        if isinstance(user, str):
+            embed = embed_create(ctx,
+                                 title='User not found!',
+                                 description='No user was found with that input! (The user ID is the best way!)',
+                                 color=discord.Color.red()
+                                 )
+            return await ctx.send(embed=embed)
+
         flags = [name.replace('_', ' ').title() for name, value in dict.fromkeys(iter(user.public_flags)) if value]
 
         embed = embed_create(ctx, title=f"Info for {user} {Emotes.badges(user)}:")
@@ -154,7 +162,7 @@ class DiscordInfo(commands.Cog, name="Discord Info"):
                         inline=False)
         embed.add_field(name="Badges:", value="\n".join(flags) or "None")
 
-        if isinstance(user, discord.Member):
+        if isinstance(user, discord.Member) and user.guild == ctx.guild:
             role_mentions = [role.mention for role in reversed(user.roles)]
             perms = get_perms(user.guild_permissions)
             embed.add_field(name="Server Nickname:", value=user.nick or "No nickname")
