@@ -1,3 +1,4 @@
+Invite this bot: https://discord.com/oauth2/authorize?client_id=818281562042138635&permissions=2048&scope=bot
 # InfoBot
 This bot gets information about certain discord objects, such as users, channels, roles, the server, emotes, and invite links
 ## Commands:
