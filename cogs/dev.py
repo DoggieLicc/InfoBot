@@ -39,7 +39,7 @@ class DevCog(commands.Cog):
                 embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
                 return await ctx.send(embed=embed)
 
-        embed = discord.Embed(title='Success!', description=f'Cogs ``{", ".join(cogs)}`` has been loaded!')
+        embed = discord.Embed(title='Success!', description=f'Cogs `{", ".join(cogs)}` has been loaded!')
         await ctx.send(embed=embed)
 
     @dev.command(hidden=True)
@@ -52,7 +52,7 @@ class DevCog(commands.Cog):
                 embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
                 return await ctx.send(embed=embed)
 
-        embed = discord.Embed(title='Success!', description=f'Cogs ``{", ".join(cogs)}`` has been unloaded!')
+        embed = discord.Embed(title='Success!', description=f'Cogs `{", ".join(cogs)}` has been unloaded!')
         await ctx.send(embed=embed)
 
     @dev.command(hidden=True)
@@ -65,7 +65,7 @@ class DevCog(commands.Cog):
                 embed = discord.Embed(title='Error!', description=f'{type(e).__name__} - {e}', color=0xeb4034)
                 return await ctx.send(embed=embed)
 
-        embed = discord.Embed(title='Success!', description=f'Cog ``{", ".join(cogs)}`` has been reloaded!')
+        embed = discord.Embed(title='Success!', description=f'Cog `{", ".join(cogs)}` has been reloaded!')
         await ctx.send(embed=embed)
 
     @dev.command(hidden=True)
