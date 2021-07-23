@@ -1,6 +1,11 @@
-import discord, time, asqlite, asyncio, re
-from discord.ext import commands
+import datetime
+from typing import Optional
 from uuid import UUID
+
+import asqlite
+import asyncio
+import discord
+import re
 
 
 def embed_create(ctx, title=discord.Embed.Empty, description=discord.Embed.Empty, color=0x46ff2e):
@@ -66,7 +71,7 @@ async def load_prefixes(bot):
         await conn.close()
 
 
-class Emotes():
+class Emotes:
     botTag = "<:botTag:230105988211015680>"
     discord = "<:discord:314003252830011395>"
     owner = "<:owner:585789630800986114>"
@@ -108,6 +113,7 @@ class Emotes():
     rules = "<:rules:781581022059692043>"
     news = "<:news:658522693058166804>"
 
+    @staticmethod
     def channel(chann):
         if chann.type == discord.ChannelType.text:
             if isinstance(chann, discord.TextChannel):
@@ -127,9 +133,12 @@ class Emotes():
         if chann.type == discord.ChannelType.stage_voice:
             return Emotes.stage
 
-    def badges(user):
-        badge = ""
-        flags = [name for name, value in dict.fromkeys(iter(user.public_flags)) if value]
+    @staticmethod
+    async def badges(user, bot):
+        badge = " "
+        u = await bot.fetch_user(user.id)
+        flags = [name for name, value in dict.fromkeys(iter(u.public_flags)) if value]
+
         if user.bot:
             badge += Emotes.botTag
         if "staff" in flags:
@@ -155,8 +164,14 @@ class Emotes():
         if "verified_bot_developer" in flags:
             badge += Emotes.verified
 
+        if (isinstance(user, discord.Member) and user.guild.premium_subscriber_role in user.roles) or \
+                user.is_avatar_animated():
+            badge += Emotes.nitro
+
+        print(badge)
         return badge
 
+    @staticmethod
     def boost(int):
         if int == 0:
             return ""
@@ -189,3 +204,9 @@ def get_from_guilds(bot, getter, argument):
 
 id_regex = re.compile(r'([0-9]{15,20})$')
 
+
+def user_friendly_dt(dt: datetime.datetime):
+    def format_dt(dt: datetime.datetime, style: Optional[str] = None) -> str:
+        if style is None: return f'<t:{int(dt.timestamp())}>'
+        return f'<t:{int(dt.timestamp())}:{style}>'
+    return format_dt(dt, style='f') + f' ({format_dt(dt, style="R")})'

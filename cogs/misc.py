@@ -113,7 +113,7 @@ class Misc(commands.Cog, name="Misc Commands"):
         await ctx.send(file=file, embed=embed)
 
     @commands.cooldown(1, 10, BucketType.user)
-    @commands.command()
+    @commands.command(aliases=['domain'])
     async def whois(self, ctx, domain: Union[Member, User, str]):
         """Does a WHOIS lookup on a domain!"""
         async with ctx.channel.typing():

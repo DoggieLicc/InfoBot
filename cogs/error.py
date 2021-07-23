@@ -49,7 +49,7 @@ class ErrorCog(err.Cog):
             buffer = StringIO(traceback_t)
             file = discord.File(buffer, filename='traceback.py')
 
-            owner = self.bot.get_user(203161760297910273)
+            owner = await self.bot.fetch_user(203161760297910273)
             embed.add_field(name="Unhandled Error!:", value=f"{error}", inline=False)
             embed.add_field(name="Message content:", value=ctx.message.content, inline=False)
             embed.add_field(name="Extra Info:", value=f"Guild: {ctx.guild}: {ctx.guild.id if ctx.guild else 'None'}\n"
